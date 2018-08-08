@@ -1,3 +1,13 @@
+### Build docker image
+
+build:
+
+`docker build . -t signingserver`
+
+run:
+
+ `docker run signingserver --rm -it -p 8443:8443`
+
 ### API
 
 #### 给服务器3个共享密钥中的2个，并提供钱包地址
