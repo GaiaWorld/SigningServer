@@ -40,8 +40,7 @@ Request:
 
 ```
 curl --request GET \
-  --url https://localhost:8443/deposit/0x5ab5550c6f4bdb32ee0e161dc161d3a4cc45326ee95a5253640c5cac5061bff8 \
-  --header 'content-type: application/x-www-form-urlencoded'
+  --url https://localhost:8443/deposit/0x5ab5550c6f4bdb32ee0e161dc161d3a4cc45326ee95a5253640c5cac5061bff8
 ```
 
 Response:
