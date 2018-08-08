@@ -10,7 +10,7 @@ run:
 
 ### API
 
-#### 给服务器3个共享密钥中的2个，并提供钱包地址
+#### 1. 给服务器3个共享密钥中的2个，并提供钱包地址
 
 Request:
 ```
@@ -33,8 +33,10 @@ Response:
     ]
 }
 ```
-#### 根据用户txid查询存款状态
 
+成功时返回同样的值
+
+#### 2. 根据用户txid查询存款状态
 
 Request:
 
@@ -57,7 +59,22 @@ Response:
 }
 ```
 
-#### 用户取款，需要提供另外1/3份密钥，打款地址和打款金额(单位:wei)
+
+`txid`: 交易号
+
+`from`: 转账方地址
+
+`to`: 接收方地址
+
+`status`: 交易是否成功标识
+
+`includedIn`: 该交易在哪一个块被打包
+
+`currentHeight`: 当前区块高度
+
+可以根据`includedIn`和`currentHeight`差值确定该交易是否足够安全，建议6个区块以上
+
+#### 3. 用户取款，需要提供另外1/3份密钥，打款地址和打款金额(单位:wei)
 
 
 Request:
@@ -73,10 +90,18 @@ curl --request POST \
 }'
 ```
 
-Response: on success return txid for this withdraw transaction
+`split`: 被拆分的3份密钥之一
+
+`to`: 接收地址
+
+`value`: 转账数量(单位: wei)
+
+Response:
 
 ```
 {
     "txid": "0xca9d48cb163f6501a89b0c8b6584691fd9e9820896828f48baf01de9c938e6f5"
 }
 ```
+
+`txid`: 交易号
