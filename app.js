@@ -6,7 +6,7 @@ const utils = require('./utils');
 
 const SHARED_SECRET = {
     "address":"",
-    "secrets": []
+    "splits": []
 };
 
 const https = require("https");
@@ -18,17 +18,17 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.post('/shares', (req, res) => {
-    const split = req.body.split;
+    const splits = req.body.splits;
     const address = req.body.address;
 
-    if(!(split && address && split.length === 2)) {
+    if(!(splits && address && splits.length === 2)) {
         res.status(400).json({
             "error": "bad request"
         });
     }
 
     SHARED_SECRET.address = address;
-    SHARED_SECRET.secrets = split;
+    SHARED_SECRET.splits = splits;
 
     res.status(200).json(SHARED_SECRET);
 });
@@ -39,7 +39,7 @@ app.post('/withdraw', async (req, res) => {
     const value = req.body.value;
     let tx;
 
-    const tmp = SHARED_SECRET.secrets.concat(split);
+    const tmp = SHARED_SECRET.splits.concat(split);
     if(utils.addressMatchShares(SHARED_SECRET.address, tmp)) {
         const privateKey = utils.reConstructPrivateKey(tmp);
         tx = await utils.buildRawTransaction(privateKey, SHARED_SECRET.address,to, value);
