@@ -24,7 +24,7 @@ curl --request POST \
 ```
 
 Response:
-
+```
 {
     "address": "0x040e7783A06e9b994F6e90DF5b2933C03F1b8F21",
     "splits": [
