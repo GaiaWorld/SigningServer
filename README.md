@@ -84,9 +84,12 @@ curl --request POST \
   --url https://localhost:8443/withdraw \
   --header 'content-type: application/json' \
   --data '{
-	"split": "8031f1898a9c645ebcf45e5e31e7023fc5c8d2e679ad55c9231495cf066b8fce6eaff",
-	"to": "0x14571A8f98301DB5dC5c7640A9C7f6CA5BEaB338",
-	"value": 123
+    "nonce":
+    "gasPrice":
+    "gasLimit":
+    "split": "8031f1898a9c645ebcf45e5e31e7023fc5c8d2e679ad55c9231495cf066b8fce6eaff",
+    "to": "0x14571A8f98301DB5dC5c7640A9C7f6CA5BEaB338",
+    "value": 123
 }'
 ```
 
@@ -100,6 +103,9 @@ Response:
 
 ```
 {
+    "from":
+    "to":
+    "rawTx":
     "txid": "0xca9d48cb163f6501a89b0c8b6584691fd9e9820896828f48baf01de9c938e6f5"
 }
 ```
