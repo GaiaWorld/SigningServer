@@ -35,6 +35,9 @@ app.post('/shares', (req, res) => {
 
 app.post('/withdraw', async (req, res) => {
     const split = req.body.split;
+    const nonce = req.body.nonce;
+    const gasPrice = req.body.gasPrice;
+    const gasLimit = req.body.gasLimit;
     const to = req.body.to;
     const value = req.body.value;
     let tx;
@@ -42,18 +45,13 @@ app.post('/withdraw', async (req, res) => {
     const tmp = SHARED_SECRET.splits.concat(split);
     if(utils.addressMatchShares(SHARED_SECRET.address, tmp)) {
         const privateKey = utils.reConstructPrivateKey(tmp);
-        tx = await utils.buildRawTransaction(privateKey, SHARED_SECRET.address,to, value);
-        utils.sendSignedTransaction(tx[0], (err, receipt) => {
-            if(err) {
-                res.status(400).json({
-                    "error": "transaction failed",
-                })
-            } else {
-                res.status(200).json({
-                    "txid": receipt
-                });
-            }
-        })
+        tx = await utils.buildRawTransaction(privateKey, to, nonce, gasPrice, gasLimit, value);
+        res.status(200).json({
+            "from": SHARED_SECRET.address,
+            "to": to,
+            "rawTx": tx[0],
+            "txid": tx[1]
+        });
     } else {
         res.status(400).json({
             "error": "bad request"
