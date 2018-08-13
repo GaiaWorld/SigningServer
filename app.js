@@ -50,7 +50,7 @@ app.post('/withdraw', async (req, res) => {
             "from": SHARED_SECRET.address,
             "to": to,
             "rawTx": tx[0],
-            "txid": tx[1]
+            "txid": "0x" + tx[1]
         });
     } else {
         res.status(400).json({
