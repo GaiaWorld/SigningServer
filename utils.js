@@ -3,7 +3,7 @@ const Tx = require('ethereumjs-tx');
 const secrets = require('secrets.js');
 const fetch = require("node-fetch");
 
-const web3Providers = "http://192.168.33.154:8545/";
+const web3Providers = "http://192.168.33.115:8545/";
 const web3 = new Web3(new Web3.providers.HttpProvider(web3Providers));
 
 const addressMatchShares = (address, shares) => {
