@@ -121,8 +121,9 @@ POST /btc/withdraw
 ```json
 {
     "split":"8031f1898a9c645ebcf45e5e31e7023fc5c8d2e679ad55c9231495cf066b8fce6eaff",
-    "feeUpperLimit": 0.001
-    [
+    "feeUpperLimit": 0.001,
+    "fromAddr": "mnmvP3tCeot98kcWSDEXbpFfATTbdgGGSR",
+    "toAddrs": [
         {
             "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
             "amount": 0.01,
