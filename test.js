@@ -1,5 +1,6 @@
 const secrets = require('secrets.js');
 const utils = require('./utils');
+require('express-async-errors');
 
 const testAddressMatchShares = () => {
     const privateKey = 'abd952e991fb40a146291e6c537fc0db0d1b6de0a815df11efb7e73e1e50daf8'; // must be '0x' prefixed
@@ -9,6 +10,12 @@ const testAddressMatchShares = () => {
     console.assert(utils.addressMatchShares(address, shares.slice(1,4)), true);
 };
 
-testAddressMatchShares();
+// testAddressMatchShares();
 
+const testCoinSeletor = async () => {
+    let address = 'mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM';
 
+    console.log(await utils.coinSelector(address, 44400001));
+}
+
+testCoinSeletor()

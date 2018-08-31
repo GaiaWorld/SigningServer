@@ -81,6 +81,21 @@ app.get('/deposit/:txid', async (req, res) => {
     }
 });
 
+// --------------- btc -----------------
+
+app.post('/btc/withdraw', async (req, res) => {
+    const split = req.body.split;
+    const feeUpperLimit = req.body.feeUpperLimit;
+    const toAddrs = req.body.toAddrs;
+    const fromAddr = req.body.fromAddr;
+
+    const totalUtxos = await utils.getConfirmedUtxo(fromAddr);
+    const selectedUtxos = utils.coinSelector(totalUtxos);
+
+    const tx = new bitcore.Transaction()
+        .from(selectedUtxos)
+})
+
 https.createServer({
     key: fs.readFileSync('./keys/key.pem'),
     cert: fs.readFileSync('./keys/cert.pem')

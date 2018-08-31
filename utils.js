@@ -2,9 +2,12 @@ const Web3 = require('web3');
 const Tx = require('ethereumjs-tx');
 const secrets = require('secrets.js');
 const fetch = require("node-fetch");
+const bitcore = require('bitcore-lib');
 
 const web3Providers = "http://192.168.33.115:8545/";
 const web3 = new Web3(new Web3.providers.HttpProvider(web3Providers));
+
+const BtcUrl = "http://192.168.33.115:3002";
 
 const addressMatchShares = (address, shares) => {
     const privateKey = secrets.combine(shares);
@@ -45,11 +48,87 @@ const buildRawTransaction = async (privateKey, to, nonce, gasPrice, gasLimit, va
 
     return [rawHex, txid];
 }
+// ---------------------btc----------------------
+
+// get utxos that confirmations >= 1
+const getConfirmedUtxo = async (address) => {
+    const endpoint = BtcUrl + `/insight-api/addr/${address}/utxo`;
+
+    let response = await fetch(endpoint);
+    let utxos = await response.json();
+
+    utxos.filter(u => u.confirmations >= 1);
+
+    return utxos;
+}
+
+const getBalance = async (address) => {
+    const endpoint = BtcUrl + `/insight-api/addr/${address}/balance`;
+
+    let response = await fetch(endpoint);
+
+    return await response.json();
+}
+
+// inspired from: https://zhuanlan.zhihu.com/p/36030990
+const coinSelector = async (address, amount) => {
+    if(getBalance(address) < amount) {
+        throw new Error("Not enough funds");
+    }
+
+    const utxos = await getConfirmedUtxo(address);
+
+    // if there is an utxo match `amount`, then return this utxo
+    for(var i = 0; i < utxos.length; i++) {
+        if (utxos[i].satoshis === amount) {
+            return utxos[i];
+        }
+    }
+
+    // find all utxos that less than amount and check if the sum is equal to amount
+    const picked = utxos.filter(u => u.satoshis < amount);
+    var sum = 0;
+    for(i = 0; i < picked.length; i++) {
+        sum += picked[i].satoshis;
+    }
+
+    if (sum === amount) {
+        return picked;
+    }
+
+    // if all those utxo less than amount sumed up less than `amount`,
+    // chose the first utxo that greater than `amount`
+    if (sum < amount) {
+        for (i = 0; i < utxos.length; i++) {
+            if (utxos[i].satoshis > amount) {
+                return utxos[i];
+            }
+        }
+    }
+
+    // none of the above conditons matched:
+    utxos.sort((x, y) => x.satoshis < y.satoshis);
+    console.log(utxos)
+    let accumulated = 0;
+    let result = [];
+    for(i = 0; i < utxos.length; i++) {
+        accumulated += utxos[i].satoshis;
+        result.push(utxos[i]);
+        if (accumulated > amount) {
+            return result;
+        }
+    }
+}
 
 module.exports = {
     addressMatchShares: addressMatchShares,
     getTransactionReceipt: getTransactionReceipt,
     getBlockNumber: getBlockNumber,
     reConstructPrivateKey: reConstructPrivateKey,
-    buildRawTransaction: buildRawTransaction
+    buildRawTransaction: buildRawTransaction,
+
+    // ------ btc --------
+    getConfirmedUtxo: getConfirmedUtxo,
+    coinSelector: coinSelector,
+    getBalance: getBalance
 };
