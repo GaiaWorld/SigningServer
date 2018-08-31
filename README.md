@@ -8,7 +8,7 @@ run:
 
  `docker run signingserver --rm -it -p 8443:8443`
 
-### API
+### ETH API
 
 #### 1. 给服务器3个共享密钥中的2个，并提供钱包地址
 
@@ -111,3 +111,54 @@ Response:
 ```
 
 `txid`: 交易号
+
+### BTC API
+
+#### 1. withdraw btc
+
+POST /btc/withdraw
+
+```json
+{
+    "split":"8031f1898a9c645ebcf45e5e31e7023fc5c8d2e679ad55c9231495cf066b8fce6eaff",
+    "feeUpperLimit": 0.001
+    [
+        {
+            "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
+            "amount": 0.01,
+        },
+        {
+            "address": "n38uMS8K3sM1PfypMd55YH8U4pUrSF4Jqo",
+            "amount": 0.02,
+        },
+        ...
+    ]
+}
+
+```
+
+```json
+{
+    "rawtx": "01000000017b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f00000000494830450221008949f0cb400094ad2b5eb399d59d01c14d73d8fe6e96df1a7150deb388ab8935022079656090d7f6bac4c9a94e0aad311a4268e082a725f8aeae0573fb12ff866a5f01ffffffff01f0ca052a010000001976a914cbc20a7664f2f69e5355aa427045bc15e7c6c77288ac00000000",
+    "utxos": [
+        {
+            "txid": "14e2bdbde6406edccb458a9560777170f823f1d791121db73cc5971596385f0e",
+            "vout": 1,
+        },
+        {
+            "txid": "26f4d4ece6a83522920387979733f06c33449bed4350865f4583aa15d0c8e345",
+            "vout": 1,
+        }
+    ]
+}
+```
+
+#### 2. transaction status
+
+GET /btc/txid/26f4d4ece6a83522920387979733f06c33449bed4350865f4583aa15d0c8e345
+
+```json
+{
+    "confirmations": 85880
+}
+```
