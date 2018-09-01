@@ -10,7 +10,16 @@ const testAddressMatchShares = () => {
     console.assert(utils.addressMatchShares(address, shares.slice(1,4)), true);
 };
 
-// testAddressMatchShares();
+const testBtcAddressMatchShares = () => {
+    const privateKey = 'b26412fd29bab29511990b02a1cd20c5d51d17987d4a80f6447293da5fe024e6';
+    const address = 'mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM';
+    const shares = secrets.share(privateKey, 5, 3);
+    console.log(shares);
+    console.assert(utils.btcAddressMatchShares(address, "testnet", shares.slice(1, 4)), true);
+}
+
+testBtcAddressMatchShares();
+
 
 const testCoinSeletor = async () => {
     let address = 'mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM';

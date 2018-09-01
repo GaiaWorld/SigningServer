@@ -120,6 +120,22 @@ const coinSelector = async (address, amount) => {
     }
 }
 
+const btcAddressMatchShares = (address, network, shares) => {
+    let privateKey = secrets.combine(shares);
+    privateKey = new bitcore.PrivateKey(privateKey);
+    const publicKey = privateKey.toPublicKey();
+
+    if (network === "testnet") {
+        var addr = publicKey.toAddress(bitcore.Networks.testnet).toString();
+    } else if (network === "livenet") {
+        var addr = publicKey.toAddress(bitcore.Networks.livenet).toString();
+    } else {
+        throw new Error("unsupported network");
+    }
+
+    return addr === address;
+}
+
 module.exports = {
     addressMatchShares: addressMatchShares,
     getTransactionReceipt: getTransactionReceipt,
@@ -130,5 +146,6 @@ module.exports = {
     // ------ btc --------
     getConfirmedUtxo: getConfirmedUtxo,
     coinSelector: coinSelector,
-    getBalance: getBalance
+    getBalance: getBalance,
+    btcAddressMatchShares: btcAddressMatchShares
 };
