@@ -148,7 +148,7 @@ app.post('/btc/withdraw', async (req, res) => {
         tx.to(toAddrs.address, toAddrs.amount);
     }
 
-    tx.from(selectedUtxos).change(fromAddr).sign(privateKey);
+    tx.from(selectedUtxos).change(fromAddr).enableRBF().sign(privateKey);
 
     if (tx.getFee() > feeUpperLimit) {
         res.status(400).json({
