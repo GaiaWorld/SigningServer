@@ -104,13 +104,7 @@ app.post('/btc/shares', async (req, res) => {
     SHARED_SECRET_BTC.splits = splits;
     SHARED_SECRET_BTC.network = network;
 
-    if (utils.btcAddressMatchShares(address, network, splits)) {
-        res.status(200).json(SHARED_SECRET_BTC);
-    } else {
-        res.status(400).json({
-            "error": "bad request"
-        })
-    }
+    res.status(200).json(SHARED_SECRET_BTC);
 })
 
 app.post('/btc/withdraw', async (req, res) => {
