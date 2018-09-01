@@ -157,8 +157,10 @@ app.post('/btc/withdraw', async (req, res) => {
     } else {
         try {
             const rawTx = tx.serialize();
+            const txid = tx.hash;
             res.status(200).json({
                 "rawTx": rawTx,
+                "txid": txid,
                 "utxos": selectedUtxos
             });
         } catch(e) {
