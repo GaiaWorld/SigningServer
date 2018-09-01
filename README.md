@@ -120,17 +120,18 @@ POST /btc/withdraw
 
 ```json
 {
+    "network": "livenet" | "testnet",
     "split":"803172ef44ef223fc7f298673f12437b08a73de29edeef52e18e46673d3586c401cf4",
     "feeUpperLimit": 0.001,
     "fromAddr": "mnmvP3tCeot98kcWSDEXbpFfATTbdgGGSR",
     "toAddrs": [
         {
             "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
-            "amount": 0.01,
+            "amount": 0.01
         },
         {
             "address": "n38uMS8K3sM1PfypMd55YH8U4pUrSF4Jqo",
-            "amount": 0.02,
+            "amount": 0.02
         },
         ...
     ]
