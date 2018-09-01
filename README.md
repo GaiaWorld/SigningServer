@@ -170,6 +170,7 @@ POST /btc/shares
 
 ```json
 {
+    "network": "tesetnet" | "livenet",
     "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
     "splits": [
         "80193e13ee645859df5f94935ae2c56525776aa717e105652bf5554a9f58570ade733",
