@@ -6,7 +6,7 @@ build:
 
 run:
 
- `docker run signingserver --rm -it -p 8443:8443`
+ `docker run --rm -it -p 8443:8443 signingserver`
 
 ### ETH API
 
