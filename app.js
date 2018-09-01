@@ -114,11 +114,25 @@ app.post('/btc/withdraw', async (req, res) => {
     const fromAddr = req.body.fromAddr;
     const network = req.body.network;
 
-    const totalUtxos = await utils.getConfirmedUtxo(fromAddr);
-    const selectedUtxos = utils.coinSelector(totalUtxos);
+    let totalAmount = 0;
+    for(var i = 0; i < toAddrs.length; i++) {
+        totalAmount += toAddrs[i].amount;
+    }
+
+    const totalBalance = await utils.getBalance(fromAddr);
+
+    if (totalBalance < totalAmount) {
+        res.status(400).json({
+            "error": "not enough funds"
+        })
+    }
+
+    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount);
     const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
 
-    if(!utils.btcAddressMatchShares(SHARED_SECRET_BTC.address, network, SHARED_SECRET_BTC.splits.concat(split))) {
+    const shares = SHARED_SECRET_BTC.splits.concat(split);
+
+    if(!utils.btcAddressMatchShares(SHARED_SECRET_BTC.address, network, shares)) {
         res.status(400).json({
             "error": "bad request"
         })
@@ -127,7 +141,7 @@ app.post('/btc/withdraw', async (req, res) => {
     const tx = utils.BtcTx();
 
     if (Array.isArray(toAddrs)) {
-        for (var i = 0; i < toAddrs.length; i++) {
+        for (i = 0; i < toAddrs.length; i++) {
             tx.to(toAddrs[i].address, toAddrs[i].amount);
         }
     } else {
@@ -140,18 +154,18 @@ app.post('/btc/withdraw', async (req, res) => {
         res.status(400).json({
             "error": "fee reach upper limit"
         });
-    }
-
-    try {
-        const rawTx = tx.serialize();
-        res.status(200).json({
-            "rawTx": rawTx,
-            "utxos": selectedUtxos
-        })
-    } catch(e) {
-        res.status(400).json({
-            "error": "Can't serialize raw transaction"
-        })
+    } else {
+        try {
+            const rawTx = tx.serialize();
+            res.status(200).json({
+                "rawTx": rawTx,
+                "utxos": selectedUtxos
+            });
+        } catch(e) {
+            res.status(400).json({
+                "error": "Can't serialize raw transaction"
+            });
+        }
     }
 })
 

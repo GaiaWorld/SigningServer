@@ -108,7 +108,6 @@ const coinSelector = async (address, amount) => {
 
     // none of the above conditons matched:
     utxos.sort((x, y) => x.satoshis < y.satoshis);
-    console.log(utxos)
     let accumulated = 0;
     let result = [];
     for(i = 0; i < utxos.length; i++) {
