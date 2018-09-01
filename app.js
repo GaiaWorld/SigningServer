@@ -112,12 +112,19 @@ app.post('/btc/withdraw', async (req, res) => {
     const feeUpperLimit = req.body.feeUpperLimit;
     const toAddrs = req.body.toAddrs;
     const fromAddr = req.body.fromAddr;
+    const network = req.body.network;
 
     const totalUtxos = await utils.getConfirmedUtxo(fromAddr);
     const selectedUtxos = utils.coinSelector(totalUtxos);
     const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
 
-    const tx = new bitcore.Transaction();
+    if(!utils.btcAddressMatchShares(SHARED_SECRET_BTC.address, network, SHARED_SECRET_BTC.splits.concat(split))) {
+        res.status(400).json({
+            "error": "bad request"
+        })
+    }
+
+    const tx = utils.BtcTx();
 
     if (Array.isArray(toAddrs)) {
         for (var i = 0; i < toAddrs.length; i++) {

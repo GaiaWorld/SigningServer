@@ -136,6 +136,10 @@ const btcAddressMatchShares = (address, network, shares) => {
     return addr === address;
 }
 
+const BtcTx = () => {
+    return new bitcore.Transaction();
+}
+
 module.exports = {
     addressMatchShares: addressMatchShares,
     getTransactionReceipt: getTransactionReceipt,
@@ -147,5 +151,6 @@ module.exports = {
     getConfirmedUtxo: getConfirmedUtxo,
     coinSelector: coinSelector,
     getBalance: getBalance,
-    btcAddressMatchShares: btcAddressMatchShares
+    btcAddressMatchShares: btcAddressMatchShares,
+    BtcTx: BtcTx
 };
