@@ -120,20 +120,20 @@ POST /btc/withdraw
 
 ```json
 {
-    "network": "livenet" | "testnet",
-    "split":"803172ef44ef223fc7f298673f12437b08a73de29edeef52e18e46673d3586c401cf4",
-    "feeUpperLimit": 0.001,
-    "fromAddr": "mnmvP3tCeot98kcWSDEXbpFfATTbdgGGSR",
+	"network": "testnet",
+    "split":"8034fd6d9d3b9734e860238cea2975033339e56e6b2841a25a2c028538e9c708900ee",
+    "feeUpperLimit": 10000000,
+    "fromAddr": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
     "toAddrs": [
         {
-            "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
-            "amount": 0.01
+            "address": "n38uMS8K3sM1PfypMd55YH8U4pUrSF4Jqo",
+            "amount": 105572000
         },
         {
-            "address": "n38uMS8K3sM1PfypMd55YH8U4pUrSF4Jqo",
-            "amount": 0.02
-        },
-        ...
+            "address": "ms8bQ6zx3JWKMa9w7sxZTk1M2ae5AYsbeJ",
+            "amount": 7000011
+        }
+
     ]
 }
 
@@ -141,19 +141,33 @@ POST /btc/withdraw
 
 ```json
 {
-    "rawtx": "01000000017b1eabe0209b1fe794124575ef807057c77ada2138ae4fa8d6c4de0398a14f3f00000000494830450221008949f0cb400094ad2b5eb399d59d01c14d73d8fe6e96df1a7150deb388ab8935022079656090d7f6bac4c9a94e0aad311a4268e082a725f8aeae0573fb12ff866a5f01ffffffff01f0ca052a010000001976a914cbc20a7664f2f69e5355aa427045bc15e7c6c77288ac00000000",
+    "rawTx": "010000000245e3c8d015aa83455f865043ed9b44336cf03397978703922235a8e6ecd4f426010000006b483045022100dbe5fcefc6d0f4226cb29ad212e147b5a2d8289ef90ea1f4f233ed30b95f044c02204a9a76372228c3bfdabeb097795e3977a004c4ef0f2ed124355e95b5c3cb78fe01210305a491aee8653f88a75534a7f4f0cb34efece7e38d57ff66aba82e42bc257b27fffffffff0e80b14db20021e5e24c64595ce05c8c45d61231f4abf9bea93fc5d60057af5010000006a4730440220119002e631dce278ee891c626628aee2c672a24b95708f0b8c805e3920758375022059c336f1507687d6967869f8ce15c0a88bc73478aef0b66db8d51d142ed4810f01210305a491aee8653f88a75534a7f4f0cb34efece7e38d57ff66aba82e42bc257b27ffffffff03a0e64a06000000001976a914ed272913a773e3b4288088859bed0ef5f501316688accbcf6a00000000001976a9147f66ea580b5d61169714cc35ecdf27e3f2cbf27788ac95636f00000000001976a914cdf75f817ef312950719f6fa1b947e75ab792d2688ac00000000",
     "utxos": [
         {
-            "txid": "14e2bdbde6406edccb458a9560777170f823f1d791121db73cc5971596385f0e",
-            "vout": 1,
-        },
-        {
+            "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
             "txid": "26f4d4ece6a83522920387979733f06c33449bed4350865f4583aa15d0c8e345",
             "vout": 1,
+            "scriptPubKey": "76a914cdf75f817ef312950719f6fa1b947e75ab792d2688ac",
+            "amount": 1.05572,
+            "satoshis": 105572000,
+            "height": 1326054,
+            "confirmations": 85970
+        },
+        {
+            "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
+            "txid": "f57a05605dfc93ea9bbf4a1f23615dc4c805ce9545c6245e1e0220db140be8f0",
+            "vout": 1,
+            "scriptPubKey": "76a914cdf75f817ef312950719f6fa1b947e75ab792d2688ac",
+            "amount": 0.144,
+            "satoshis": 14400000,
+            "height": 1324324,
+            "confirmations": 87700
         }
     ]
 }
 ```
+
+on error, return { "error": "xxxxx" }
 
 #### 2. transaction status
 
