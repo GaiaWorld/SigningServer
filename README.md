@@ -169,17 +169,7 @@ POST /btc/withdraw
 
 on error, return { "error": "xxxxx" }
 
-#### 2. transaction status
-
-GET /btc/txid/26f4d4ece6a83522920387979733f06c33449bed4350865f4583aa15d0c8e345
-
-```json
-{
-    "confirmations": 85880
-}
-```
-
-#### 3. secret shares
+#### 2. secret shares
 
 POST /btc/shares
 
