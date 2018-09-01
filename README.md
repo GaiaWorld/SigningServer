@@ -163,3 +163,19 @@ GET /btc/txid/26f4d4ece6a83522920387979733f06c33449bed4350865f4583aa15d0c8e345
     "confirmations": 85880
 }
 ```
+
+#### 3. secret shares
+
+POST /btc/shares
+
+```json
+{
+    "address": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
+    "splits": [
+        "80193e13ee645859df5f94935ae2c56525776aa717e105652bf5554a9f58570ade733",
+        "8028d527f1d6a518d7a1deaffae3026d1cb20890d8925a2d5510de7ee7403921bd734"
+    ]
+}
+```
+
+on success, return the same json object.
