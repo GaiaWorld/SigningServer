@@ -57,9 +57,7 @@ const getConfirmedUtxo = async (address) => {
     let response = await fetch(endpoint);
     let utxos = await response.json();
 
-    utxos.filter(u => u.confirmations >= 1);
-
-    return utxos;
+    return utxos.filter(u => u.confirmations >= 1);
 }
 
 const getBalance = async (address) => {
