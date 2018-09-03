@@ -72,7 +72,8 @@ const getBalance = async (address) => {
 
 // inspired from: https://zhuanlan.zhihu.com/p/36030990
 const coinSelector = async (address, amount) => {
-    if(getBalance(address) < amount) {
+    let totalBalance = await getBalance(address)
+    if(totalBalance < amount) {
         throw new Error("Not enough funds");
     }
 
