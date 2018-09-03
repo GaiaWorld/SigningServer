@@ -113,6 +113,8 @@ app.post('/btc/withdraw', async (req, res) => {
     const toAddrs = req.body.toAddrs;
     const fromAddr = req.body.fromAddr;
     const network = req.body.network;
+    const bumpFee = req.body.bumpFee;
+    const rate = req.body.rate;
 
     let totalAmount = 0;
     for(var i = 0; i < toAddrs.length; i++) {
@@ -127,7 +129,7 @@ app.post('/btc/withdraw', async (req, res) => {
         })
     }
 
-    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount);
+    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + feeUpperLimit);
     const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
 
     const shares = SHARED_SECRET_BTC.splits.concat(split);
@@ -150,7 +152,12 @@ app.post('/btc/withdraw', async (req, res) => {
 
     tx.from(selectedUtxos).change(fromAddr).enableRBF().sign(privateKey);
 
-    if (tx.getFee() > feeUpperLimit) {
+    if (bumpFee) {
+        tx.fee((tx.getFee() * (100 + rate)) / 100).sign(privateKey);
+        console.log(tx.getFee())
+    }
+    const fee = tx.getFee();
+    if (fee > feeUpperLimit) {
         res.status(400).json({
             "error": "fee reach upper limit"
         });
@@ -160,8 +167,7 @@ app.post('/btc/withdraw', async (req, res) => {
             const txid = tx.hash;
             res.status(200).json({
                 "rawTx": rawTx,
-                "txid": txid,
-                "utxos": selectedUtxos
+                "txid": txid
             });
         } catch(e) {
             res.status(400).json({

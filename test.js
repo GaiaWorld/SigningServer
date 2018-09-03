@@ -18,13 +18,21 @@ const testBtcAddressMatchShares = () => {
     console.assert(utils.btcAddressMatchShares(address, "testnet", shares.slice(1, 4)), true);
 }
 
-testBtcAddressMatchShares();
+// testBtcAddressMatchShares();
 
 
 const testCoinSeletor = async () => {
     let address = 'mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM';
 
-    console.log(await utils.coinSelector(address, 44400001));
+    console.log(await utils.coinSelector(address, 453001));
 }
 
 testCoinSeletor()
+
+const testGetConfirmedUtxos = async () => {
+    let a = await utils.getConfirmedUtxo('myxeUAtbtdqWkG1xBwDyB98MV86wcPvLBW')
+
+    console.log(a)
+}
+
+testGetConfirmedUtxos()
