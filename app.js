@@ -167,7 +167,8 @@ app.post('/btc/withdraw', async (req, res) => {
             const txid = tx.hash;
             res.status(200).json({
                 "rawTx": rawTx,
-                "txid": txid
+                "txid": txid,
+                "fee": fee
             });
         } catch(e) {
             res.status(400).json({
