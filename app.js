@@ -3,6 +3,7 @@ require('express-async-errors');
 const bodyParser = require('body-parser');
 
 const utils = require('./utils');
+const bitcore = require('bitcore-lib');
 
 const SHARED_SECRET_ETH = {
     "address":"",
@@ -113,8 +114,6 @@ app.post('/btc/withdraw', async (req, res) => {
     const toAddrs = req.body.toAddrs;
     const fromAddr = req.body.fromAddr;
     const network = req.body.network;
-    const bumpFee = req.body.bumpFee;
-    const rate = req.body.rate;
 
     let totalAmount = 0;
     for(var i = 0; i < toAddrs.length; i++) {
@@ -152,10 +151,6 @@ app.post('/btc/withdraw', async (req, res) => {
 
     tx.from(selectedUtxos).change(fromAddr).enableRBF().sign(privateKey);
 
-    if (bumpFee) {
-        tx.fee((tx.getFee() * (100 + rate)) / 100).sign(privateKey);
-        console.log(tx.getFee())
-    }
     const fee = tx.getFee();
     if (fee > feeUpperLimit) {
         res.status(400).json({
@@ -176,6 +171,89 @@ app.post('/btc/withdraw', async (req, res) => {
             });
         }
     }
+})
+
+app.post('/btc/re-send', async (req, res) => {
+    const originTxid = req.body.originTxid;
+    const split = req.body.split;
+    const feeRate = req.body.feeRate;
+    const feeUpperLimit = req.body.feeUpperLimit;
+
+    const txinfo = await utils.getTxInfo(originTxid);
+    if (txinfo.confirmations > 0 && blockheight !== -1) {
+        res.status(400).json({
+            "error": "Transaction has been succeed"
+        })
+    }
+
+    if (feeRate <= 0 || Number.isInteger(feeRate)) {
+        res.status(400).json({
+            "erros": "feeRate must be a positive integer"
+        })
+    }
+
+    const vin = txinfo.vin;
+    const vout = txinfo.vout;
+    const utxos = [];
+    let fromAddr = "";
+
+    for (var i = 0; i < vin.length; i++) {
+        const id = vin[i].txid;
+        const vout = vin[i].vout;
+        const address = vin[i].addr;
+        fromAddr = address; // FIXME
+        const satoshis = vin[i].valueSat;
+
+        const addr = bitcore.Address.fromString(address);
+        const script = bitcore.Script.buildPublicKeyHashOut(addr);
+        const scritpPubkey = script.toHex();
+
+        const utxo = new bitcore.Transaction.UnspentOutput({
+            "txid" : id,
+            "vout" : vout,
+            "address" : address,
+            "scriptPubKey" : scritpPubkey,
+            "satoshis" : satoshis
+        });
+
+        utxos.push(utxo);
+    }
+    const tx = utils.BtcTx();
+
+    try {
+        var privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
+    } catch(e) {
+        res.status(400).json({
+            "error": "Cant re-contruct private key"
+        })
+    }
+
+    for (i = 0; i < vout.length; i++) {
+        if (vout[i].scriptPubKey.addresses[0] !== fromAddr) {
+            const value = bitcore.Unit.fromBTC(vout[i].value).toSatoshis();
+            const address = vout[i].scriptPubKey.addresses[0];
+            tx.to(address, value);
+        }
+    }
+
+    tx.from(utxos)
+        .change(fromAddr)
+        .enableRBF()
+        .fee((tx.getFee() * (100 + feeRate)) / 100)
+        .sign(privateKey);
+
+    if (tx.getFee() > feeUpperLimit) {
+        res.status(400).json({
+            "error": "fee reach upper limit"
+        })
+    }
+
+    res.status(200).json({
+        "rawTx": tx.serialize(),
+        "originTxid": originTxid,
+        "newTxid": tx.hash,
+        "fee": tx.getFee()
+    })
 })
 
 https.createServer({

@@ -60,6 +60,15 @@ const getConfirmedUtxo = async (address) => {
     return utxos.filter(u => u.confirmations >= 1);
 }
 
+const getTxInfo = async (txid) => {
+    const endpoint = BtcUrl + `/insight-api/tx/${txid}`;
+
+    let response = await fetch(endpoint);
+    let txinfo = await response.json();
+
+    return txinfo;
+}
+
 const getBalance = async (address) => {
     const endpoint = BtcUrl + `/insight-api/addr/${address}/balance`;
 
@@ -150,5 +159,6 @@ module.exports = {
     coinSelector: coinSelector,
     getBalance: getBalance,
     btcAddressMatchShares: btcAddressMatchShares,
-    BtcTx: BtcTx
+    BtcTx: BtcTx,
+    getTxInfo: getTxInfo
 };

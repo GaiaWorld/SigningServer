@@ -134,16 +134,18 @@ POST /btc/withdraw
             "amount": 7000011
         }
 
-    ],
-    "bumpFee": true | false,
-    "rate": 10
+    ]
 }
 
 ```
 
-* bumpFee - whether increase miner fee or not
+* network - testnet or livenet
+* split - one of the secret share
+* feeUpperLimit - increase the fee below feeUpperLimit will be accepted, otherwise rejected
+* fromAddr - from which this transaction is issued
+* toAddrs - destination address and corresponding amount
 
-* rate - percentage to increase miner fee
+on error, return { "error": "xxxxx" }
 
 ```json
 {
@@ -152,6 +154,10 @@ POST /btc/withdraw
     "fee": 10000
 }
 ```
+
+* rawTx - raw transaction that can be sent to bitcoin network
+* txid - transaction id
+* fee - transaction fee
 
 on error, return { "error": "xxxxx" }
 
@@ -170,4 +176,35 @@ POST /btc/shares
 }
 ```
 
-on success, return the same json object.
+#### 3. re-send transaction
+
+POST /btc/re-send
+
+```json
+{
+	"originTxid": "3b1f4b8569e532089eaf288afc5f72ca497bb77ab853a759ab5e6119c6e01ca6",
+    "split":"8034fd6d9d3b9734e860238cea2975033339e56e6b2841a25a2c028538e9c708900ee",
+    "feeUpperLimit": 300000,
+    "fromAddr": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
+    "feeRate": 20
+}
+```
+
+* originTxid - original transaction id that need bump fee
+* split - one of the secret share
+* feeRate - increase corresponding percentage of fee, must be integer
+* feeUpperLimit - increase the fee below feeUpperLimit will be accepted, otherwise rejected
+
+```json
+{
+    "rawTx": "010000000145e3c8d015aa83455f865043ed9b44336cf03397978703922235a8e6ecd4f426010000006b483045022100a5faffb4b66b59eeaa3a3f4b2e58e439ad3dc67fc6cf9571cf31c66fe584fef102207273b39da3d365dcbb15fc80e5c764089858f51cab06c5fba4b5f932ce2e35cf01210305a491aee8653f88a75534a7f4f0cb34efece7e38d57ff66aba82e42bc257b27fdffffff03629c0100000000001976a914ed272913a773e3b4288088859bed0ef5f501316688ac70110100000000001976a9147f66ea580b5d61169714cc35ecdf27e3f2cbf27788ac0e644606000000001976a914cdf75f817ef312950719f6fa1b947e75ab792d2688ac00000000",
+    "originTxid": "3b1f4b8569e532089eaf288afc5f72ca497bb77ab853a759ab5e6119c6e01ca6",
+    "newTxid": "c029aebfa40dcf8da2b137aafac813e8963c69648bbea80da2dfa1a473f86ad3",
+    "fee": 120000
+}
+```
+
+* rawTx - raw transaction that can be sent to bitcoin network
+* originTxid - original transaction id that need bump fee
+* newTxid - transaction id after bumping fee
+* fee - fee after bumping
