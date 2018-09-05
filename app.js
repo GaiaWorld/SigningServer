@@ -130,6 +130,7 @@ app.post('/btc/withdraw', async (req, res) => {
 
     const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + feeUpperLimit);
     const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
+    console.log('app.js +133', privateKey)
 
     const shares = SHARED_SECRET_BTC.splits.concat(split);
 
@@ -176,20 +177,33 @@ app.post('/btc/withdraw', async (req, res) => {
 app.post('/btc/re-send', async (req, res) => {
     const originTxid = req.body.originTxid;
     const split = req.body.split;
-    const feeRate = req.body.feeRate;
+    const priority = req.body.priority;
     const feeUpperLimit = req.body.feeUpperLimit;
 
-    const txinfo = await utils.getTxInfo(originTxid);
-    if (txinfo.confirmations > 0 && blockheight !== -1) {
+    try {
+        var txinfo = await utils.getTxInfo(originTxid);
+    } catch(e) {
+        res.status(400).json({
+            "error": "re-send an unknow transaction"
+        })
+    }
+
+    console.log(txinfo)
+    if (txinfo.confirmations > 0 && txinfo.blockheight !== -1) {
         res.status(400).json({
             "error": "Transaction has been succeed"
         })
     }
 
-    if (feeRate <= 0 || Number.isInteger(feeRate)) {
-        res.status(400).json({
-            "erros": "feeRate must be a positive integer"
-        })
+    let minerFee = await utils.estimateMinerFee();
+    let fee = 0;
+
+    if (priority === "low") {
+        fee = minerFee.low;
+    } else if (priority === "medium") {
+        fee = minerFee.medium;
+    } else if (priority === "high") {
+        fee = minerFee.high;
     }
 
     const vin = txinfo.vin;
@@ -239,7 +253,7 @@ app.post('/btc/re-send', async (req, res) => {
     tx.from(utxos)
         .change(fromAddr)
         .enableRBF()
-        .fee((tx.getFee() * (100 + feeRate)) / 100)
+        .feePerKb(fee)
         .sign(privateKey);
 
     if (tx.getFee() > feeUpperLimit) {

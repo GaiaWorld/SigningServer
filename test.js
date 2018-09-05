@@ -18,7 +18,7 @@ const testBtcAddressMatchShares = () => {
     console.assert(utils.btcAddressMatchShares(address, "testnet", shares.slice(1, 4)), true);
 }
 
-// testBtcAddressMatchShares();
+testBtcAddressMatchShares();
 
 
 const testCoinSeletor = async () => {

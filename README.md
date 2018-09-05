@@ -186,13 +186,13 @@ POST /btc/re-send
     "split":"8034fd6d9d3b9734e860238cea2975033339e56e6b2841a25a2c028538e9c708900ee",
     "feeUpperLimit": 300000,
     "fromAddr": "mzJ1AAKQpMj5eaCL3b4oNuSantXmVgz2tM",
-    "feeRate": 20
+    "priority": "medium"
 }
 ```
 
 * originTxid - original transaction id that need bump fee
 * split - one of the secret share
-* feeRate - increase corresponding percentage of fee, must be integer
+* priority - "low" | "medium" | "high"
 * feeUpperLimit - increase the fee below feeUpperLimit will be accepted, otherwise rejected
 
 ```json

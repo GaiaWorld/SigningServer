@@ -8,6 +8,7 @@ const web3Providers = "http://192.168.33.115:8545/";
 const web3 = new Web3(new Web3.providers.HttpProvider(web3Providers));
 
 const BtcUrl = "http://192.168.33.115:3002";
+const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
     const privateKey = secrets.combine(shares);
@@ -64,9 +65,23 @@ const getTxInfo = async (txid) => {
     const endpoint = BtcUrl + `/insight-api/tx/${txid}`;
 
     let response = await fetch(endpoint);
+    if (response.status !== 200) {
+        throw new Error("Cant find this transaction")
+    }
     let txinfo = await response.json();
 
     return txinfo;
+}
+
+const estimateMinerFee = async () => {
+    let response = await fetch(MinerFeeOracle);
+    let json = await response.json();
+
+    return {
+        "high": json.high_fee_per_kb,
+        "medium": json.medium_fee_per_kb,
+        "low": json.low_fee_per_kb
+    }
 }
 
 const getBalance = async (address) => {
@@ -160,5 +175,6 @@ module.exports = {
     getBalance: getBalance,
     btcAddressMatchShares: btcAddressMatchShares,
     BtcTx: BtcTx,
-    getTxInfo: getTxInfo
+    getTxInfo: getTxInfo,
+    estimateMinerFee: estimateMinerFee
 };
