@@ -115,6 +115,7 @@ app.post('/btc/withdraw', async (req, res) => {
     const toAddrs = req.body.toAddrs;
     const fromAddr = req.body.fromAddr;
     const network = req.body.network;
+    const priority = req.body.priority;
 
     let totalAmount = 0;
     for(var i = 0; i < toAddrs.length; i++) {
@@ -131,6 +132,14 @@ app.post('/btc/withdraw', async (req, res) => {
     }
 
     const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + feeUpperLimit);
+    // const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount);
+
+    if (!selectedUtxos) {
+        res.status(400).json({
+            "error": "no appropriate utxo found"
+        });
+        return;
+    }
     const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
 
     const shares = SHARED_SECRET_BTC.splits.concat(split);
@@ -160,9 +169,37 @@ app.post('/btc/withdraw', async (req, res) => {
         tx.to(toAddrs.address, toAddrs.amount);
     }
 
-    tx.from(selectedUtxos).change(fromAddr).enableRBF().sign(privateKey);
+    let minerFee = await utils.estimateMinerFee();
+    let fee = 0;
 
-    const fee = tx.getFee();
+    if (priority === "low") {
+        fee = minerFee.low;
+    } else if (priority === "medium") {
+        fee = minerFee.medium;
+    } else if (priority === "high") {
+        fee = minerFee.high;
+    } else {
+        res.status(400).json({
+            "error": "Please check fee priority"
+        });
+        return;
+    }
+
+    try {
+        tx.from(selectedUtxos)
+            .change(fromAddr)
+            .enableRBF()
+            .feePerKb(fee)
+            .sign(privateKey);
+    } catch(e) {
+        console.log(selectedUtxos)
+        console.log(e)
+        res.status(400).json({
+            "error": "Incorrect signing key"
+        });
+        return;
+    }
+
     if (fee > feeUpperLimit) {
         res.status(400).json({
             "error": "fee reach upper limit"
@@ -177,6 +214,7 @@ app.post('/btc/withdraw', async (req, res) => {
                 "fee": fee
             });
         } catch(e) {
+            console.log(e)
             res.status(400).json({
                 "error": "Can't serialize raw transaction"
             });
@@ -216,6 +254,11 @@ app.post('/btc/re-send', async (req, res) => {
         fee = minerFee.medium;
     } else if (priority === "high") {
         fee = minerFee.high;
+    } else {
+        res.status(400).json({
+            "error": "Please check fee priority"
+        });
+        return;
     }
 
     const vin = txinfo.vin;
@@ -264,11 +307,20 @@ app.post('/btc/re-send', async (req, res) => {
         }
     }
 
-    tx.from(utxos)
+    try {
+        tx.from(utxos)
         .change(fromAddr)
         .enableRBF()
         .feePerKb(fee)
         .sign(privateKey);
+    } catch(e) {
+        res.status(400).json({
+            "error": "Incorrect siging key"
+        });
+        console.log(e);
+        return;
+    }
+
 
     if (tx.getFee() > feeUpperLimit) {
         res.status(400).json({

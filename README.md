@@ -134,7 +134,8 @@ POST /btc/withdraw
             "amount": 7000011
         }
 
-    ]
+    ],
+    "priority": "medium"
 }
 
 ```
