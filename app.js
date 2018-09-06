@@ -83,8 +83,9 @@ app.get('/deposit/:txid', async (req, res) => {
         });
     } catch(e) {
         res.status(400).json({
-            "error":"bad request"
+            "error":"network error"
         });
+        console.log(e)
     }
 });
 
@@ -97,7 +98,7 @@ app.post('/btc/shares', async (req, res) => {
 
     if(!(splits && address && splits.length === 2)) {
         res.status(400).json({
-            "error": "bad request"
+            "error": "parameter error"
         });
     }
 
@@ -125,19 +126,28 @@ app.post('/btc/withdraw', async (req, res) => {
     if (totalBalance < totalAmount) {
         res.status(400).json({
             "error": "not enough funds"
-        })
+        });
+        return;
     }
 
     const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + feeUpperLimit);
     const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
-    console.log('app.js +133', privateKey)
 
     const shares = SHARED_SECRET_BTC.splits.concat(split);
 
-    if(!utils.btcAddressMatchShares(SHARED_SECRET_BTC.address, network, shares)) {
+    try {
+        if(!utils.btcAddressMatchShares(SHARED_SECRET_BTC.address, network, shares)) {
+            res.status(400).json({
+                "error": "Address not match the shares"
+            });
+            return;
+        }
+    } catch(e) {
         res.status(400).json({
-            "error": "bad request"
-        })
+            "error": "Can't re-construct secret from shares"
+        });
+        console.log(e);
+        return;
     }
 
     const tx = utils.BtcTx();
@@ -170,6 +180,7 @@ app.post('/btc/withdraw', async (req, res) => {
             res.status(400).json({
                 "error": "Can't serialize raw transaction"
             });
+            console.log(e)
         }
     }
 })
@@ -185,10 +196,11 @@ app.post('/btc/re-send', async (req, res) => {
     } catch(e) {
         res.status(400).json({
             "error": "re-send an unknow transaction"
-        })
+        });
+        console.log(e);
+        return;
     }
 
-    console.log(txinfo)
     if (txinfo.confirmations > 0 && txinfo.blockheight !== -1) {
         res.status(400).json({
             "error": "Transaction has been succeed"
@@ -239,7 +251,9 @@ app.post('/btc/re-send', async (req, res) => {
     } catch(e) {
         res.status(400).json({
             "error": "Cant re-contruct private key"
-        })
+        });
+        console.log(e)
+        return;
     }
 
     for (i = 0; i < vout.length; i++) {
@@ -259,7 +273,8 @@ app.post('/btc/re-send', async (req, res) => {
     if (tx.getFee() > feeUpperLimit) {
         res.status(400).json({
             "error": "fee reach upper limit"
-        })
+        });
+        return;
     }
 
     res.status(200).json({
