@@ -242,7 +242,8 @@ app.post('/btc/re-send', async (req, res) => {
     if (txinfo.confirmations > 0 && txinfo.blockheight !== -1) {
         res.status(400).json({
             "error": "Transaction has been succeed"
-        })
+        });
+        return;
     }
 
     let minerFee = await utils.estimateMinerFee();
