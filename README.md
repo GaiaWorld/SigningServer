@@ -134,8 +134,7 @@ POST /btc/withdraw
             "amount": 7000011
         }
 
-    ],
-    "priority": "medium"
+    ]
 }
 
 ```
@@ -145,7 +144,6 @@ POST /btc/withdraw
 * feeUpperLimit - increase the fee below feeUpperLimit will be accepted, otherwise rejected
 * fromAddr - from which this transaction is issued
 * toAddrs - destination address and corresponding amount
-* priority - "low" | "medium" | "high"
 
 on error, return { "error": "xxxxx" }
 

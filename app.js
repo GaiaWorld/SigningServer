@@ -115,7 +115,6 @@ app.post('/btc/withdraw', async (req, res) => {
     const toAddrs = req.body.toAddrs;
     const fromAddr = req.body.fromAddr;
     const network = req.body.network;
-    const priority = req.body.priority;
 
     let totalAmount = 0;
     for(var i = 0; i < toAddrs.length; i++) {
@@ -169,20 +168,7 @@ app.post('/btc/withdraw', async (req, res) => {
     }
 
     let minerFee = await utils.estimateMinerFee();
-    let fee = 0;
-
-    if (priority === "low") {
-        fee = minerFee.low;
-    } else if (priority === "medium") {
-        fee = minerFee.medium;
-    } else if (priority === "high") {
-        fee = minerFee.high;
-    } else {
-        res.status(400).json({
-            "error": "Please check fee priority"
-        });
-        return;
-    }
+    let fee = minerFee.low;
 
     try {
         tx.from(selectedUtxos)
