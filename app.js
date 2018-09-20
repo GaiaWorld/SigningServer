@@ -131,8 +131,7 @@ app.post('/btc/withdraw', async (req, res) => {
         return;
     }
 
-    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + feeUpperLimit);
-    // const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount);
+    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount);
 
     if (!selectedUtxos) {
         res.status(400).json({
