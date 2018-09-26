@@ -130,7 +130,10 @@ app.post('/btc/withdraw', async (req, res) => {
         return;
     }
 
-    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount);
+    let minerFee = await utils.estimateMinerFee();
+    let fee = minerFee.low;
+
+    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + fee);
 
     if (!selectedUtxos) {
         res.status(400).json({
@@ -167,8 +170,6 @@ app.post('/btc/withdraw', async (req, res) => {
         tx.to(toAddrs.address, toAddrs.amount);
     }
 
-    let minerFee = await utils.estimateMinerFee();
-    let fee = minerFee.low;
 
     try {
         tx.from(selectedUtxos)
