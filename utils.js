@@ -8,7 +8,7 @@ const bitcore = require('bitcore-lib');
 const web3Providers = "https://ropsten.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
 const web3 = new Web3(new Web3.providers.HttpProvider(web3Providers));
 
-const BtcUrl = "http://192.168.33.115:3002";
+const BtcUrl = "http://39.104.129.43:3002";
 const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
