@@ -68,10 +68,11 @@ app.post('/withdraw', async (req, res) => {
 
 app.get('/deposit/:txid', async (req, res) => {
     const txid = req.params.txid;
+    const network = req.query.network;
 
     try {
-        const receipt = await utils.getTransactionReceipt(txid);
-        const blkNo = await utils.getBlockNumber();
+        const receipt = await utils.getTransactionReceipt(txid, network);
+        const blkNo = await utils.getBlockNumber(network);
 
         res.status(200).json({
             "txid": txid,
@@ -121,7 +122,7 @@ app.post('/btc/withdraw', async (req, res) => {
         totalAmount += toAddrs[i].amount;
     }
 
-    const totalBalance = await utils.getBalance(fromAddr);
+    const totalBalance = await utils.getBalance(fromAddr, network);
 
     if (totalBalance < totalAmount) {
         res.status(400).json({
@@ -133,7 +134,7 @@ app.post('/btc/withdraw', async (req, res) => {
     let minerFee = await utils.estimateMinerFee();
     let fee = minerFee.low;
 
-    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + fee);
+    const selectedUtxos = await utils.coinSelector(fromAddr, totalAmount + fee, network);
 
     if (!selectedUtxos) {
         res.status(400).json({
@@ -214,9 +215,10 @@ app.post('/btc/re-send', async (req, res) => {
     const split = req.body.split;
     const priority = req.body.priority;
     const feeUpperLimit = req.body.feeUpperLimit;
+    const network = req.body.network;
 
     try {
-        var txinfo = await utils.getTxInfo(originTxid);
+        var txinfo = await utils.getTxInfo(originTxid, network);
     } catch(e) {
         res.status(400).json({
             "error": "re-send an unknow transaction"

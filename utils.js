@@ -4,16 +4,23 @@ const secrets = require('secrets.js');
 const fetch = require("node-fetch");
 const bitcore = require('bitcore-lib');
 
-//const web3Providers = "http://192.168.33.115:8545/";
-const web3Providers = "https://ropsten.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
-const web3 = new Web3(new Web3.providers.HttpProvider(web3Providers));
+const RopstenWeb3Provider = "https://ropsten.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
+const RinkebyWeb3Provider = "https://rinkeby.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
+const KovanWeb3Provider = "https://kovan.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
+const MainnetWeb3Provider = "https://mainnet.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
 
-const BtcUrl = "http://39.104.129.43:3002";
+const RopstenWeb3 = new Web3(new Web3.providers.HttpProvider(RopstenWeb3Provider));
+const RinkebyWeb3 = new Web3(new Web3.providers.HttpProvider(RinkebyWeb3Provider));
+const KovanWeb3 = new Web3(new Web3.providers.HttpProvider(KovanWeb3Provider));
+const MainnetWeb3 = new Web3(new Web3.providers.HttpProvider(MainnetWeb3Provider));
+
+const BtcLivenet = "http://39.104.129.43:3001";
+const BtcTestnet = "http://39.104.129.43:3002"
 const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
     const privateKey = secrets.combine(shares);
-    const x = web3.eth.accounts.privateKeyToAccount('0x'+privateKey);
+    const x = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
 
     return x.address === address;
 };
@@ -22,14 +29,50 @@ const reConstructPrivateKey = (shares) => {
     return secrets.combine(shares);
 }
 
-const getTransactionReceipt = async (txid) => {
-    const detail = await web3.eth.getTransactionReceipt(txid);
+const getTransactionReceipt = async (txid, network) => {
+    let detail;
+
+    switch (network) {
+        case "mainnet":
+            detail = await MainnetWeb3.eth.getTransactionReceipt(txid);
+            break;
+        case "ropsten":
+            detail = await RopstenWeb3.eth.getTransactionReceipt(txid);
+            break;
+        case "rinkeby":
+            detail = await RinkebyWeb3.eth.getTransactionReceipt(txid);
+            break;
+        case "kovan":
+            detail = await KovanWeb3.eth.getTransactionReceipt(txid);
+            break;
+        default:
+            // placeholder
+            break;
+    }
 
     return detail;
 };
 
-const getBlockNumber = async () => {
-    const blkno = await web3.eth.getBlockNumber();
+const getBlockNumber = async (network) => {
+    let blkno;
+
+    switch (network) {
+        case "mainnet":
+            blkno = await MainnetWeb3.eth.getBlockNumber();
+            break;
+        case "ropsten":
+            blkno = await RopstenWeb3.eth.getBlockNumber();
+            break;
+        case "rinkeby":
+            blkno = await RinkebyWeb3.eth.getBlockNumber();
+            break;
+        case "kovan":
+            blkno = await KovanWeb3.eth.getBlockNumber();
+            break;
+        default:
+            // placeholder
+            break;
+    }
 
     return blkno;
 }
@@ -53,8 +96,14 @@ const buildRawTransaction = async (privateKey, to, nonce, gasPrice, gasLimit, va
 // ---------------------btc----------------------
 
 // get utxos that confirmations >= 1
-const getConfirmedUtxo = async (address) => {
-    const endpoint = BtcUrl + `/insight-api/addr/${address}/utxo`;
+const getConfirmedUtxo = async (address, network) => {
+    let endpoint;
+
+    if (network === "livenet") {
+        endpoint = BtcLivenet + `/insight-api/addr/${address}/utxo`;
+    } else if (network === "testnet") {
+        endpoint = BtcTestnet + `/insight-api/addr/${address}/utxo`;
+    }
 
     let response = await fetch(endpoint);
     let utxos = await response.json();
@@ -62,8 +111,14 @@ const getConfirmedUtxo = async (address) => {
     return utxos.filter(u => u.confirmations >= 1);
 }
 
-const getTxInfo = async (txid) => {
-    const endpoint = BtcUrl + `/insight-api/tx/${txid}`;
+const getTxInfo = async (txid, network) => {
+    let endpoint;
+
+    if (network === "livenet") {
+        endpoint = BtcLivenet + `/insight-api/tx/${txid}`;
+    } else if (network === "testnet") {
+        endpoint = BtcTestnet + `/insight-api/tx/${txid}`;
+    }
 
     let response = await fetch(endpoint);
     if (response.status !== 200) {
@@ -85,8 +140,14 @@ const estimateMinerFee = async () => {
     }
 }
 
-const getBalance = async (address) => {
-    const endpoint = BtcUrl + `/insight-api/addr/${address}/balance`;
+const getBalance = async (address, network) => {
+    let endpoint;
+
+    if (network === "livenet") {
+        endpoint = BtcLivenet + `/insight-api/addr/${address}/balance`;
+    } else if (network === "testnet") {
+        endpoint = BtcTestnet + `/insight-api/addr/${address}/balance`;
+    }
 
     let response = await fetch(endpoint);
 
@@ -94,16 +155,16 @@ const getBalance = async (address) => {
 }
 
 // inspired from: https://zhuanlan.zhihu.com/p/36030990
-const coinSelector = async (address, amount) => {
-    let totalBalance = await getBalance(address)
-    if(totalBalance < amount) {
+const coinSelector = async (address, amount, network) => {
+    let totalBalance = await getBalance(address, network)
+    if (totalBalance < amount) {
         throw new Error("Not enough funds");
     }
 
-    const utxos = await getConfirmedUtxo(address);
+    const utxos = await getConfirmedUtxo(address, network);
 
     // if there is an utxo match `amount`, then return this utxo
-    for(var i = 0; i < utxos.length; i++) {
+    for (var i = 0; i < utxos.length; i++) {
         if (utxos[i].satoshis === amount) {
             return utxos[i];
         }
@@ -112,7 +173,7 @@ const coinSelector = async (address, amount) => {
     // find all utxos that less than amount and check if the sum is equal to amount
     const picked = utxos.filter(u => u.satoshis < amount);
     var sum = 0;
-    for(i = 0; i < picked.length; i++) {
+    for (i = 0; i < picked.length; i++) {
         sum += picked[i].satoshis;
     }
 
@@ -135,7 +196,7 @@ const coinSelector = async (address, amount) => {
     utxos.sort((x, y) => x.satoshis < y.satoshis);
     let accumulated = 0;
     let result = [];
-    for(i = 0; i < utxos.length; i++) {
+    for (i = 0; i < utxos.length; i++) {
         accumulated += utxos[i].satoshis;
         result.push(utxos[i]);
         if (accumulated > amount) {

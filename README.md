@@ -42,13 +42,14 @@ Request:
 
 ```
 curl --request GET \
-  --url https://localhost:8443/deposit/0x5ab5550c6f4bdb32ee0e161dc161d3a4cc45326ee95a5253640c5cac5061bff8
+  --url https://localhost:8443/deposit/0x5ab5550c6f4bdb32ee0e161dc161d3a4cc45326ee95a5253640c5cac5061bff8?network=ropsten
 ```
+
+- 查询参数network的值可以为: ropsten, rinkeby, kovan, mainnet 其中之一
 
 Response:
 
 ```
-
 {
     "txid": "0x5ab5550c6f4bdb32ee0e161dc161d3a4cc45326ee95a5253640c5cac5061bff8",
     "from": "0x602ea273b80d2116ca4f1178002610aa7e82f8cd",
@@ -182,6 +183,7 @@ POST /btc/re-send
 
 ```json
 {
+    "network": "testnet" | "livenet",
 	"originTxid": "3b1f4b8569e532089eaf288afc5f72ca497bb77ab853a759ab5e6119c6e01ca6",
     "split":"8034fd6d9d3b9734e860238cea2975033339e56e6b2841a25a2c028538e9c708900ee",
     "feeUpperLimit": 300000,
@@ -190,6 +192,7 @@ POST /btc/re-send
 }
 ```
 
+* network - "livenet" | "testnet"
 * originTxid - original transaction id that need bump fee
 * split - one of the secret share
 * priority - "low" | "medium" | "high"
