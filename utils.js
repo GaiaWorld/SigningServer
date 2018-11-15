@@ -20,7 +20,7 @@ const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
     const privateKey = secrets.combine(shares);
-    const x = web3.eth.accounts.privateKeyToAccount('0x' + privateKey);
+    const x = MainnetWeb3.eth.accounts.privateKeyToAccount('0x' + privateKey);
 
     return x.address === address;
 };
@@ -79,11 +79,11 @@ const getBlockNumber = async (network) => {
 
 const buildRawTransaction = async (privateKey, to, nonce, gasPrice, gasLimit, value) => {
     const rawTx = {
-        nonce: web3.utils.toHex(nonce),
-        gasPrice: web3.utils.toHex(gasPrice),
-        gasLimit: web3.utils.toHex(gasLimit),
+        nonce: MainnetWeb3.utils.toHex(nonce),
+        gasPrice: MainnetWeb3.utils.toHex(gasPrice),
+        gasLimit: MainnetWeb3.utils.toHex(gasLimit),
         to: to,
-        value: web3.utils.toHex(value)
+        value: MainnetWeb3.utils.toHex(value)
     }
     const tx = new Tx(rawTx);
     tx.sign(new Buffer(privateKey, 'hex'));
