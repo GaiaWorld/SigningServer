@@ -5,22 +5,13 @@ const bodyParser = require('body-parser');
 const utils = require('./utils');
 const bitcore = require('bitcore-lib');
 
-const SHARED_SECRET_ETH = {
-    "address":"",
-    "splits": []
-};
-
-const SHARED_SECRET_BTC = {
-    "address": "",
-    "splits": [],
-    "network": ""
-};
-
 const https = require("https");
 const fs = require("fs");
 
-const app = express();
+const EthAddresses = new Map();
+const BtcAddresses = new Map();
 
+const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -34,13 +25,13 @@ app.post('/shares', (req, res) => {
         });
     }
 
-    SHARED_SECRET_ETH.address = address;
-    SHARED_SECRET_ETH.splits = splits;
+    EthAddresses.set(address, {splits: splits})
 
-    res.status(200).json(SHARED_SECRET_ETH);
+    res.status(200).json(EthAddresses.get(address));
 });
 
 app.post('/withdraw', async (req, res) => {
+    const from = req.body.from;
     const split = req.body.split;
     const nonce = req.body.nonce;
     const gasPrice = req.body.gasPrice;
@@ -49,12 +40,13 @@ app.post('/withdraw', async (req, res) => {
     const value = req.body.value;
     let tx;
 
-    const tmp = SHARED_SECRET_ETH.splits.concat(split);
-    if(utils.addressMatchShares(SHARED_SECRET_ETH.address, tmp)) {
+    const tmp = EthAddresses.get(from).splits.concat(split);
+
+    if(utils.addressMatchShares(from, tmp)) {
         const privateKey = utils.reConstructPrivateKey(tmp);
         tx = await utils.buildRawTransaction(privateKey, to, nonce, gasPrice, gasLimit, value);
         res.status(200).json({
-            "from": SHARED_SECRET_ETH.address,
+            "from": from,
             "to": to,
             "rawTx": tx[0],
             "txid": "0x" + tx[1]
@@ -103,11 +95,9 @@ app.post('/btc/shares', async (req, res) => {
         });
     }
 
-    SHARED_SECRET_BTC.address = address;
-    SHARED_SECRET_BTC.splits = splits;
-    SHARED_SECRET_BTC.network = network;
+    BtcAddresses.set(address, {splits: splits, network: network});
 
-    res.status(200).json(SHARED_SECRET_BTC);
+    res.status(200).json(BtcAddresses.get(address));
 })
 
 app.post('/btc/withdraw', async (req, res) => {
@@ -142,12 +132,11 @@ app.post('/btc/withdraw', async (req, res) => {
         });
         return;
     }
-    const privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
-
-    const shares = SHARED_SECRET_BTC.splits.concat(split);
+    const privateKey = utils.reConstructPrivateKey(BtcAddresses.get(fromAddr).splits.concat(split));
+    const shares = BtcAddresses.get(fromAddr).splits.concat(split);
 
     try {
-        if(!utils.btcAddressMatchShares(SHARED_SECRET_BTC.address, network, shares)) {
+        if(!utils.btcAddressMatchShares(fromAddr, network, shares)) {
             res.status(400).json({
                 "error": "Address not match the shares"
             });
@@ -279,7 +268,7 @@ app.post('/btc/re-send', async (req, res) => {
     const tx = utils.BtcTx();
 
     try {
-        var privateKey = utils.reConstructPrivateKey(SHARED_SECRET_BTC.splits.concat(split));
+        var privateKey = utils.reConstructPrivateKey(BtcAddresses.get(fromAddr).splits.concat(split));
     } catch(e) {
         res.status(400).json({
             "error": "Cant re-contruct private key"

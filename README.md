@@ -85,6 +85,7 @@ curl --request POST \
   --url https://localhost:8443/withdraw \
   --header 'content-type: application/json' \
   --data '{
+    "from":
     "nonce":
     "gasPrice":
     "gasLimit":
@@ -93,6 +94,7 @@ curl --request POST \
     "value": 123
 }'
 ```
+`from`: 从哪个地方取款
 
 `split`: 被拆分的3份密钥之一
 
