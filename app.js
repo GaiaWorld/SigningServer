@@ -11,6 +11,8 @@ const fs = require("fs");
 const EthAddresses = new Map();
 const BtcAddresses = new Map();
 
+const TxCache = new Map();
+
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -197,6 +199,8 @@ app.post('/btc/withdraw', async (req, res) => {
         try {
             const rawTx = tx.serialize();
             const txid = tx.hash;
+            // used for tx resend
+            TxCache.set(txid, {inputs: utxos, outputs: toAddrs});
             res.status(200).json({
                 "rawTx": rawTx,
                 "txid": txid,
@@ -219,20 +223,28 @@ app.post('/btc/re-send', async (req, res) => {
     const feeUpperLimit = req.body.feeUpperLimit;
     const network = req.body.network;
 
-    try {
-        var txinfo = await utils.getTxInfo(originTxid, network);
-    } catch(e) {
+    const tx = utils.BtcTx();
+    let resend = TxCache.get(originTxid);
+
+    if (resend) {
+        try {
+            var txinfo = await utils.getTxInfo(originTxid, network);
+            if (txinfo.confirmations > 0 && txinfo.block_height !== -1) {
+                // evict confirmed tx
+                TxCache.delete(originTxid)
+                res.status(400).json({
+                    "error": "Transaction has been succeed"
+                });
+                return;
+            }
+        } catch(_e) {
+            
+        }
+    } else {
         res.status(400).json({
             "error": "re-send an unknow transaction"
         });
         console.log(e);
-        return;
-    }
-
-    if (txinfo.confirmations > 0 && txinfo.blockheight !== -1) {
-        res.status(400).json({
-            "error": "Transaction has been succeed"
-        });
         return;
     }
 
@@ -252,36 +264,10 @@ app.post('/btc/re-send', async (req, res) => {
         return;
     }
 
-    const vin = txinfo.vin;
-    const vout = txinfo.vout;
-    const utxos = [];
-    let fromAddr = "";
-
-    for (var i = 0; i < vin.length; i++) {
-        const id = vin[i].txid;
-        const vout = vin[i].vout;
-        const address = vin[i].addr;
-        fromAddr = address; // FIXME
-        const satoshis = vin[i].valueSat;
-
-        const addr = bitcore.Address.fromString(address);
-        const script = bitcore.Script.buildPublicKeyHashOut(addr);
-        const scritpPubkey = script.toHex();
-
-        const utxo = new bitcore.Transaction.UnspentOutput({
-            "txid" : id,
-            "vout" : vout,
-            "address" : address,
-            "scriptPubKey" : scritpPubkey,
-            "satoshis" : satoshis
-        });
-
-        utxos.push(utxo);
-    }
-    const tx = utils.BtcTx();
-
+    // replaced tx must has the same inputs as old one
+    // https://medium.com/@overtorment/bitcoin-replace-by-fee-guide-e10032f9a93f
     try {
-        var privateKey = utils.reConstructPrivateKey(BtcAddresses.get(fromAddr).splits.concat(split));
+        var privateKey = utils.reConstructPrivateKey(BtcAddresses.get(resend.inputs[0].address.toString()).splits.concat(split));
     } catch(e) {
         res.status(400).json({
             "error": "Cant re-contruct private key"
@@ -290,20 +276,16 @@ app.post('/btc/re-send', async (req, res) => {
         return;
     }
 
-    for (i = 0; i < vout.length; i++) {
-        if (vout[i].scriptPubKey.addresses[0] !== fromAddr) {
-            const value = bitcore.Unit.fromBTC(vout[i].value).toSatoshis();
-            const address = vout[i].scriptPubKey.addresses[0];
-            tx.to(address, value);
-        }
-    }
-
     try {
-        tx.from(utxos)
-        .change(fromAddr)
-        .enableRBF()
-        .feePerKb(fee)
-        .sign(privateKey);
+        for(let toAddr of resend.outputs) {
+            tx.to(toAddr.address, toAddr.amount)
+        }
+
+        tx.from(resend.inputs)
+            .change(resend.inputs[0].address.toString())
+            .enableRBF()
+            .feePerKb(fee)
+            .sign(privateKey)
     } catch(e) {
         res.status(400).json({
             "error": "Incorrect siging key"
@@ -311,8 +293,9 @@ app.post('/btc/re-send', async (req, res) => {
         console.log(e);
         return;
     }
+        
 
-
+    // fee reach the upper limit thus not replaciable
     if (tx.getFee() > feeUpperLimit) {
         res.status(400).json({
             "error": "fee reach upper limit"
@@ -327,6 +310,27 @@ app.post('/btc/re-send', async (req, res) => {
         "fee": tx.getFee()
     })
 })
+
+// clear cache every 30s
+setInterval(async () => {
+    for (let txid of TxCache.keys()) {
+        try {
+            const txinfo = await utils.getTxInfo(txid, network);
+            if (txinfo.confirmations > 0 && txinfo.block_height !== -1) {
+                // evict confirmed tx
+                TxCache.delete(txid)
+                console.log("remove confirmed txid: ", txid);
+
+                res.status(400).json({
+                    "error": "Transaction has been succeed"
+                });
+                return;
+            }
+        } catch(_e) {
+
+        }
+    }
+}, (1000 * 30));
 
 https.createServer({
     key: fs.readFileSync('./keys/key.pem'),
