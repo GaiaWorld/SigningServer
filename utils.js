@@ -14,8 +14,8 @@ const RinkebyWeb3 = new Web3(new Web3.providers.HttpProvider(RinkebyWeb3Provider
 const KovanWeb3 = new Web3(new Web3.providers.HttpProvider(KovanWeb3Provider));
 const MainnetWeb3 = new Web3(new Web3.providers.HttpProvider(MainnetWeb3Provider));
 
-const BtcLivenet = "http://39.104.129.43:3001";
-const BtcTestnet = "http://39.104.129.43:3002"
+const BtcLivenet = "https://api.blockcypher.com";
+const BtcTestnet = "https://api.blockcypher.com";
 const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
@@ -100,24 +100,25 @@ const getConfirmedUtxo = async (address, network) => {
     let endpoint;
 
     if (network === "livenet") {
-        endpoint = BtcLivenet + `/insight-api/addr/${address}/utxo`;
+        endpoint = BtcLivenet + `/v1/btc/main/addrs/${address}?unspentOnly=true`;
     } else if (network === "testnet") {
-        endpoint = BtcTestnet + `/insight-api/addr/${address}/utxo`;
+        endpoint = BtcTestnet + `/v1/btc/test3/addrs/${address}?unspentOnly=true`;
     }
 
     let response = await fetch(endpoint);
     let utxos = await response.json();
 
-    return utxos.filter(u => u.confirmations >= 1);
+    let res = utxos.txrefs.filter(u => u.spent === false && u.confirmations >= 1);
+    return res;
 }
 
 const getTxInfo = async (txid, network) => {
     let endpoint;
 
     if (network === "livenet") {
-        endpoint = BtcLivenet + `/insight-api/tx/${txid}`;
+        endpoint = BtcLivenet + `/v1/btc/main/txs/${txid}`;
     } else if (network === "testnet") {
-        endpoint = BtcTestnet + `/insight-api/tx/${txid}`;
+        endpoint = BtcTestnet + `/v1/btc/test3/txs/${txid}`;
     }
 
     let response = await fetch(endpoint);
@@ -144,9 +145,9 @@ const getBalance = async (address, network) => {
     let endpoint;
 
     if (network === "livenet") {
-        endpoint = BtcLivenet + `/insight-api/addr/${address}/balance`;
+        endpoint = BtcLivenet + `/v1/btc/main/addrs/${address}/balance`;
     } else if (network === "testnet") {
-        endpoint = BtcTestnet + `/insight-api/addr/${address}/balance`;
+        endpoint = BtcTestnet + `/v1/btc/test3/addrs/${address}/balance`;
     }
 
     let response = await fetch(endpoint);
@@ -165,16 +166,16 @@ const coinSelector = async (address, amount, network) => {
 
     // if there is an utxo match `amount`, then return this utxo
     for (var i = 0; i < utxos.length; i++) {
-        if (utxos[i].satoshis === amount) {
+        if (utxos[i].value === amount) {
             return utxos[i];
         }
     }
 
     // find all utxos that less than amount and check if the sum is equal to amount
-    const picked = utxos.filter(u => u.satoshis < amount);
+    const picked = utxos.filter(u => u.value < amount);
     var sum = 0;
     for (i = 0; i < picked.length; i++) {
-        sum += picked[i].satoshis;
+        sum += picked[i].value;
     }
 
     if (sum === amount) {
@@ -185,7 +186,7 @@ const coinSelector = async (address, amount, network) => {
     // chose the first utxo that greater than `amount`
     if (sum < amount) {
         for (i = 0; i < utxos.length; i++) {
-            if (utxos[i].satoshis > amount) {
+            if (utxos[i].value > amount) {
                 return utxos[i];
             }
         }
@@ -193,11 +194,11 @@ const coinSelector = async (address, amount, network) => {
 
     // none of the above conditons matched:
     // TODO: sort by mutiple metrics
-    utxos.sort((x, y) => x.satoshis < y.satoshis);
+    utxos.sort((x, y) => x.value < y.value);
     let accumulated = 0;
     let result = [];
     for (i = 0; i < utxos.length; i++) {
-        accumulated += utxos[i].satoshis;
+        accumulated += utxos[i].value;
         result.push(utxos[i]);
         if (accumulated > amount) {
             return result;

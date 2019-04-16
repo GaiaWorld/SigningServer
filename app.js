@@ -160,9 +160,22 @@ app.post('/btc/withdraw', async (req, res) => {
         tx.to(toAddrs.address, toAddrs.amount);
     }
 
+    let utxos = []
+
+    for (let ut of selectedUtxos) {
+        let u = new bitcore.Transaction.UnspentOutput({
+            "txId" : ut.tx_hash,
+            "outputIndex" : ut.tx_output_n,
+            "address" : fromAddr,
+            "script" : bitcore.Script.buildPublicKeyHashOut(fromAddr),
+            "satoshis" : ut.value,
+        })
+
+        utxos.push(u);
+    }
 
     try {
-        tx.from(selectedUtxos)
+        tx.from(utxos)
             .change(fromAddr)
             .enableRBF()
             .feePerKb(fee)
