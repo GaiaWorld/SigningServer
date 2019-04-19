@@ -14,8 +14,8 @@ const RinkebyWeb3 = new Web3(new Web3.providers.HttpProvider(RinkebyWeb3Provider
 const KovanWeb3 = new Web3(new Web3.providers.HttpProvider(KovanWeb3Provider));
 const MainnetWeb3 = new Web3(new Web3.providers.HttpProvider(MainnetWeb3Provider));
 
-const BtcLivenet = "http://39.104.129.43:3001";
-const BtcTestnet = "http://39.104.129.43:3002"
+const BtcLivenet = "https://insight.bitpay.com/api";
+const BtcTestnet = "https://test-insight.bitpay.com/api"
 const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
@@ -100,9 +100,9 @@ const getConfirmedUtxo = async (address, network) => {
     let endpoint;
 
     if (network === "livenet") {
-        endpoint = BtcLivenet + `/insight-api/addr/${address}/utxo`;
+        endpoint = BtcLivenet + `/addr/${address}/utxo`;
     } else if (network === "testnet") {
-        endpoint = BtcTestnet + `/insight-api/addr/${address}/utxo`;
+        endpoint = BtcTestnet + `/addr/${address}/utxo`;
     }
 
     let response = await fetch(endpoint);
@@ -115,9 +115,9 @@ const getTxInfo = async (txid, network) => {
     let endpoint;
 
     if (network === "livenet") {
-        endpoint = BtcLivenet + `/insight-api/tx/${txid}`;
+        endpoint = BtcLivenet + `/tx/${txid}`;
     } else if (network === "testnet") {
-        endpoint = BtcTestnet + `/insight-api/tx/${txid}`;
+        endpoint = BtcTestnet + `/tx/${txid}`;
     }
 
     let response = await fetch(endpoint);
@@ -144,9 +144,9 @@ const getBalance = async (address, network) => {
     let endpoint;
 
     if (network === "livenet") {
-        endpoint = BtcLivenet + `/insight-api/addr/${address}/balance`;
+        endpoint = BtcLivenet + `/addr/${address}/balance`;
     } else if (network === "testnet") {
-        endpoint = BtcTestnet + `/insight-api/addr/${address}/balance`;
+        endpoint = BtcTestnet + `/addr/${address}/balance`;
     }
 
     let response = await fetch(endpoint);

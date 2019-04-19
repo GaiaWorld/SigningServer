@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 COPY sources.list /etc/apt/sources.list
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
         build-essential \
         git \
         curl
