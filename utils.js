@@ -4,18 +4,18 @@ const secrets = require('secrets.js');
 const fetch = require("node-fetch");
 const bitcore = require('bitcore-lib');
 
-const RopstenWeb3Provider = "https://ropsten.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
-const RinkebyWeb3Provider = "https://rinkeby.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
-const KovanWeb3Provider = "https://kovan.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
-const MainnetWeb3Provider = "https://mainnet.infura.io/Y4zS49bjsYwtRU3Tt4Yj";
+const RopstenWeb3Provider = "https://ropsten.infura.io/v3/80991bc5817c42d4bf65b915303deb7a";
+const RinkebyWeb3Provider = "https://rinkeby.infura.io/v3/80991bc5817c42d4bf65b915303deb7a";
+const KovanWeb3Provider = "https://kovan.infura.io/v3/80991bc5817c42d4bf65b915303deb7a";
+const MainnetWeb3Provider = "https://mainnet.infura.io/v3/80991bc5817c42d4bf65b915303deb7a";
 
 const RopstenWeb3 = new Web3(new Web3.providers.HttpProvider(RopstenWeb3Provider));
 const RinkebyWeb3 = new Web3(new Web3.providers.HttpProvider(RinkebyWeb3Provider));
 const KovanWeb3 = new Web3(new Web3.providers.HttpProvider(KovanWeb3Provider));
 const MainnetWeb3 = new Web3(new Web3.providers.HttpProvider(MainnetWeb3Provider));
 
-const BtcLivenet = "https://insight.bitpay.com/api";
-const BtcTestnet = "https://test-insight.bitpay.com/api"
+const BtcLivenet = "http://localhost:3002/insight-api";
+const BtcTestnet = "http://localhost:3001/insight-api"
 const MinerFeeOracle = "https://api.blockcypher.com/v1/btc/main";
 
 const addressMatchShares = (address, shares) => {
