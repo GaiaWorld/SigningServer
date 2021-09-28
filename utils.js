@@ -225,6 +225,42 @@ const BtcTx = () => {
     return new bitcore.Transaction();
 }
 
+
+// ---------------------币安链----------------------
+
+// TODO 交易签名
+/**
+ * 
+ * @param {string} signStr 代签名字符串
+ * @param {string} key 私钥
+ * @returns sign
+ */
+const bnbWithdrawalSign = (signStr, privateKey) => {
+
+    return MainnetWeb3.eth.accounts.sign("\x19Ethereum Signed Message:\n" + signStr.length + signStr, privateKey);
+}
+
+const hexToArrayBuffer = (input) => {
+    if (typeof input !== 'string') {
+        throw new TypeError('Expected input to be a string')
+    }
+
+    if ((input.length % 2) !== 0) {
+        throw new RangeError('Expected string to be an even number of characters')
+    }
+
+    var input2 = input.replace(/^0x/, '');
+
+    const view = new Uint8Array(input2.length / 2)
+
+    for (let i = 0; i < input2.length; i += 2) {
+        view[i / 2] = parseInt(input2.substring(i, i + 2), 16)
+    }
+
+    return view
+}
+
+
 module.exports = {
     addressMatchShares: addressMatchShares,
     getTransactionReceipt: getTransactionReceipt,
@@ -239,5 +275,8 @@ module.exports = {
     btcAddressMatchShares: btcAddressMatchShares,
     BtcTx: BtcTx,
     getTxInfo: getTxInfo,
-    estimateMinerFee: estimateMinerFee
+    estimateMinerFee: estimateMinerFee,
+
+    // ------- bnb --------
+    bnbWithdrawalSign: bnbWithdrawalSign
 };

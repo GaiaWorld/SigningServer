@@ -10,22 +10,27 @@ const fs = require("fs");
 
 const EthAddresses = new Map();
 const BtcAddresses = new Map();
+const BnbAddresses = new Map();
 
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 app.use(bodyParser.json());
+
 
 app.post('/shares', (req, res) => {
     const splits = req.body.splits;
     const address = req.body.address;
-
-    if(!(splits && address && splits.length === 2)) {
+    if (!(splits && address && splits.length === 2)) {
         res.status(400).json({
             "error": "bad request"
         });
     }
 
-    EthAddresses.set(address, {splits: splits})
+    EthAddresses.set(address, {
+        splits: splits
+    })
 
     res.status(200).json(EthAddresses.get(address));
 });
@@ -42,7 +47,7 @@ app.post('/withdraw', async (req, res) => {
 
     const tmp = EthAddresses.get(from).splits.concat(split);
 
-    if(utils.addressMatchShares(from, tmp)) {
+    if (utils.addressMatchShares(from, tmp)) {
         const privateKey = utils.reConstructPrivateKey(tmp);
         tx = await utils.buildRawTransaction(privateKey, to, nonce, gasPrice, gasLimit, value);
         res.status(200).json({
@@ -74,9 +79,9 @@ app.get('/deposit/:txid', async (req, res) => {
             "includedIn": receipt.blockNumber,
             "currentHeight": blkNo,
         });
-    } catch(e) {
+    } catch (e) {
         res.status(400).json({
-            "error":"network error"
+            "error": "network error"
         });
         console.log(e)
     }
@@ -89,13 +94,16 @@ app.post('/btc/shares', async (req, res) => {
     const address = req.body.address;
     const network = req.body.network;
 
-    if(!(splits && address && splits.length === 2)) {
+    if (!(splits && address && splits.length === 2)) {
         res.status(400).json({
             "error": "parameter error"
         });
     }
 
-    BtcAddresses.set(address, {splits: splits, network: network});
+    BtcAddresses.set(address, {
+        splits: splits,
+        network: network
+    });
 
     res.status(200).json(BtcAddresses.get(address));
 })
@@ -108,7 +116,7 @@ app.post('/btc/withdraw', async (req, res) => {
     const network = req.body.network;
 
     let totalAmount = 0;
-    for(var i = 0; i < toAddrs.length; i++) {
+    for (var i = 0; i < toAddrs.length; i++) {
         totalAmount += toAddrs[i].amount;
     }
 
@@ -136,13 +144,13 @@ app.post('/btc/withdraw', async (req, res) => {
     const shares = BtcAddresses.get(fromAddr).splits.concat(split);
 
     try {
-        if(!utils.btcAddressMatchShares(fromAddr, network, shares)) {
+        if (!utils.btcAddressMatchShares(fromAddr, network, shares)) {
             res.status(400).json({
                 "error": "Address not match the shares"
             });
             return;
         }
-    } catch(e) {
+    } catch (e) {
         res.status(400).json({
             "error": "Can't re-construct secret from shares"
         });
@@ -167,7 +175,7 @@ app.post('/btc/withdraw', async (req, res) => {
             .enableRBF()
             .feePerKb(fee)
             .sign(privateKey);
-    } catch(e) {
+    } catch (e) {
         console.log(selectedUtxos)
         console.log(e)
         res.status(400).json({
@@ -189,7 +197,7 @@ app.post('/btc/withdraw', async (req, res) => {
                 "txid": txid,
                 "fee": fee
             });
-        } catch(e) {
+        } catch (e) {
             console.log(e)
             res.status(400).json({
                 "error": "Can't serialize raw transaction"
@@ -208,7 +216,7 @@ app.post('/btc/re-send', async (req, res) => {
 
     try {
         var txinfo = await utils.getTxInfo(originTxid, network);
-    } catch(e) {
+    } catch (e) {
         res.status(400).json({
             "error": "re-send an unknow transaction"
         });
@@ -256,11 +264,11 @@ app.post('/btc/re-send', async (req, res) => {
         const scritpPubkey = script.toHex();
 
         const utxo = new bitcore.Transaction.UnspentOutput({
-            "txid" : id,
-            "vout" : vout,
-            "address" : address,
-            "scriptPubKey" : scritpPubkey,
-            "satoshis" : satoshis
+            "txid": id,
+            "vout": vout,
+            "address": address,
+            "scriptPubKey": scritpPubkey,
+            "satoshis": satoshis
         });
 
         utxos.push(utxo);
@@ -269,7 +277,7 @@ app.post('/btc/re-send', async (req, res) => {
 
     try {
         var privateKey = utils.reConstructPrivateKey(BtcAddresses.get(fromAddr).splits.concat(split));
-    } catch(e) {
+    } catch (e) {
         res.status(400).json({
             "error": "Cant re-contruct private key"
         });
@@ -287,11 +295,11 @@ app.post('/btc/re-send', async (req, res) => {
 
     try {
         tx.from(utxos)
-        .change(fromAddr)
-        .enableRBF()
-        .feePerKb(fee)
-        .sign(privateKey);
-    } catch(e) {
+            .change(fromAddr)
+            .enableRBF()
+            .feePerKb(fee)
+            .sign(privateKey);
+    } catch (e) {
         res.status(400).json({
             "error": "Incorrect siging key"
         });
@@ -312,6 +320,47 @@ app.post('/btc/re-send', async (req, res) => {
         "originTxid": originTxid,
         "newTxid": tx.hash,
         "fee": tx.getFee()
+    })
+})
+
+// --------------- bnb -----------------
+
+// 导入2/5份秘钥
+app.post('/bnb/shares', async (req, res) => {
+    const splits = req.body.splits;
+    const address = req.body.address;
+
+    if (!(splits && address && splits.length === 2)) {
+        res.status(400).json({
+            "error": "parameter error"
+        });
+    }
+
+    BnbAddresses.set(address, {
+        splits: splits
+    });
+
+    res.status(200).json(BnbAddresses.get(address));
+})
+
+app.post('/bnb/withdrawalsign', async (req, res) => {
+    const split = req.body.split;
+    const data = req.body.data;
+    const address = req.body.address;
+    try {
+        var privateKey = utils.reConstructPrivateKey(BnbAddresses.get(address).splits.concat(split));
+    } catch (e) {
+        res.status(400).json({
+            "error": "Cant re-contruct private key"
+        });
+        console.log(e)
+        return;
+    }
+    var sign = await utils.bnbWithdrawalSign(data, privateKey);
+    res.status(200).json({
+        message: sign.message,
+        messageHash: sign.messageHash,
+        signature: sign.signature
     })
 })
 
