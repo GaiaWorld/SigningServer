@@ -1,3 +1,17 @@
+### 部署
+
+- 安装指定版本的nodejs
+```
+yum install -y nodejs
+node -version
+npm install -g n
+n 12.13.1
+node -version
+
+```
+- 安装依赖
+npm i
+
 ### Build docker image
 
 build:

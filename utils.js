@@ -237,7 +237,7 @@ const BtcTx = () => {
  */
 const bnbWithdrawalSign = (signStr, privateKey) => {
 
-    return MainnetWeb3.eth.accounts.sign("\x19Ethereum Signed Message:\n" + signStr.length + signStr, privateKey);
+    return MainnetWeb3.eth.accounts.sign(signStr, privateKey);
 }
 
 const hexToArrayBuffer = (input) => {
