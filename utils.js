@@ -235,9 +235,12 @@ const BtcTx = () => {
  * @param {string} key 私钥
  * @returns sign
  */
-const bnbWithdrawalSign = (signStr, privateKey) => {
+const bnbWithdrawalSign = async (signStr, privateKey) => {
 
-    return MainnetWeb3.eth.accounts.sign(signStr, privateKey);
+    // return MainnetWeb3.eth.accounts.sign(signStr, privateKey);
+    let arr = JSON.parse(signStr);
+    let signStr2 = await MainnetWeb3.utils.soliditySha3(...arr);
+    return MainnetWeb3.eth.accounts.sign(signStr2, privateKey);
 }
 
 const hexToArrayBuffer = (input) => {
