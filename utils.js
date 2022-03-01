@@ -228,7 +228,6 @@ const BtcTx = () => {
 
 // ---------------------币安链----------------------
 
-// TODO 交易签名
 /**
  * 
  * @param {string} signStr 代签名字符串
@@ -241,6 +240,21 @@ const bnbWithdrawalSign = async (signStr, privateKey) => {
     let arr = JSON.parse(signStr);
     let signStr2 = await MainnetWeb3.utils.soliditySha3(...arr);
     return MainnetWeb3.eth.accounts.sign(signStr2, privateKey);
+}
+
+/**
+ * @param {string} typesArray 签名类型数组
+ * @param {string} signStr 代签名字符串
+ * @param {string} key 私钥
+ * @returns sign
+ */
+const bnbWithdrawalSignNew = async (typesArray, signStr, privateKey) => {
+
+    // return MainnetWeb3.eth.accounts.sign(signStr, privateKey);
+    var arr = JSON.parse(signStr);
+    var typesArray = JSON.parse(typesArray);
+    var signStr2 = MainnetWeb3.eth.abi.encodeParameters(typesArray, arr);
+    return MainnetWeb3.eth.accounts.sign(MainnetWeb3.utils.keccak256(signStr2), privateKey);
 }
 
 const hexToArrayBuffer = (input) => {
@@ -281,5 +295,6 @@ module.exports = {
     estimateMinerFee: estimateMinerFee,
 
     // ------- bnb --------
-    bnbWithdrawalSign: bnbWithdrawalSign
+    bnbWithdrawalSign: bnbWithdrawalSign,
+    bnbWithdrawalSignNew: bnbWithdrawalSignNew
 };

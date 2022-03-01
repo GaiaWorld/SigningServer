@@ -346,6 +346,7 @@ app.post('/bnb/shares', async (req, res) => {
 app.post('/bnb/withdrawalsign', async (req, res) => {
     const split = req.body.split;
     const data = req.body.data;
+    const typesArray = req.body.typesArray;
     const address = req.body.address;
     try {
         var privateKey = utils.reConstructPrivateKey(BnbAddresses.get(address).splits.concat(split));
@@ -356,7 +357,13 @@ app.post('/bnb/withdrawalsign', async (req, res) => {
         console.log(e)
         return;
     }
-    var sign = await utils.bnbWithdrawalSign(data, privateKey);
+    let sign = {};
+    if (!typesArray) {
+        sign = await utils.bnbWithdrawalSign(data, privateKey);
+    } else {
+        sign = await utils.bnbWithdrawalSignNew(typesArray, data, privateKey);
+    }
+
     res.status(200).json({
         message: sign.message,
         messageHash: sign.messageHash,
@@ -372,11 +379,12 @@ const server = https.createServer({
 }, app).listen(8443, '0.0.0.0');
 
 server.on('listening', onListening);
+
 function onListening() {
     var addr = server.address();
-    console.log('listen add:',addr);
-    var bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port;
+    console.log('listen add:', addr);
+    var bind = typeof addr === 'string' ?
+        'pipe ' + addr :
+        'port ' + addr.port;
     console.log('Listening on ' + bind);
 }
